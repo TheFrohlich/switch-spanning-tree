@@ -11,10 +11,10 @@ export class Logger {
     }
     clear(): void {
         this.view.innerText = '';
-        this.counter = 0;
+        this.counter = 1;
     }
-    spacer():void{
-        this.view.innerText +='\n--------------------------------------------------------------------------------';
+    spacer(): void {
+        this.view.innerText += '\n--------------------------------------------------------------------------------';
     }
 }
 
@@ -51,8 +51,7 @@ export class GGraph {
     };
 
     initArcs(arcsList) {
-        var _this = this;
-        _this.arcsList = arcsList;
+        this.arcsList = arcsList;
         for (var arc of arcsList) {
             this.mainElement.appendChild(arc.element);
             arc.callBack = () => {
@@ -120,7 +119,7 @@ export class GGraph {
         for (var arc of this.arcsList) {
             arc.name.includes(nodeName) && nodeArcs.push(arc);
         }
-        //  nodeArcs.sort((a,b) => {return a.name.localeCompare(b.name)});
+         
         return nodeArcs;
     };
 
@@ -151,6 +150,7 @@ export class GNode {
     public element: Element;
     private root: string;
     public message: Message;
+    public connectorMessage: Message;
     constructor(name) {
         this.name = name;
         this.arcs = [];
@@ -168,18 +168,20 @@ export class GNode {
 
     public emit(): void {
         for (let arc of this.arcs) {
+            logger.log(`node: ${this.name} arc:${arc.name}  Active:${arc.isActive}`);
             arc.isActive && arc.emit(this.message);
         }
     }
-    public getMessage():Message{
+    public getMessage(): Message {
         return this.message;
     }
     public handleIncomingsMessage(incomingMessage: Message): void {
         if (incomingMessage.source == this.name) { throw Error('message sand to self !!'); }
+        let log =true;
 
         let innerMessage = this.message;
-        logger.log(`innerMessage ${innerMessage.toString2()}`);
-        logger.log(`incomingMessage ${incomingMessage.toString2()}`)
+        log && logger.log(`innerMessage ${innerMessage.toString2()}`);
+        log && logger.log(`incomingMessage ${incomingMessage.toString2()}`)
 
         let rootCompressionResult = this.message.root.localeCompare(incomingMessage.root);
         // if the this root is younger
@@ -191,20 +193,29 @@ export class GNode {
         if (rootCompressionResult === 0) {
             let stepsCompressionResult = this.compareNumbers(innerMessage.steps, incomingMessage.steps);
             if (stepsCompressionResult > 0) {
+                let tmp = this.compareNumbers(this.connectorMessage.steps, incomingMessage.steps);
+                if (tmp === 0) {
+                    if (this.connectorMessage.source.localeCompare(incomingMessage.source) === -1) {
+                        log && logger.log("spacial");
+                        log && logger.log(`Node ${this.name} message updated to ${innerMessage.toString2()}`);
+                        log && logger.spacer();
+                        return;
+                    }
+                }
                 innerMessage.connector = incomingMessage.source;
                 innerMessage.steps = incomingMessage.steps + 1;
             }
             if (stepsCompressionResult === 0) {
-                let connectorComparisonResult = innerMessage.connector.localeCompare(incomingMessage.connector);
+                let connectorComparisonResult = innerMessage.connector.localeCompare(incomingMessage.source);
                 if (connectorComparisonResult === 1) {
                     innerMessage.connector = incomingMessage.connector;
                 }
             }
         }
-        if (rootCompressionResult < 1) {
-        }
-        logger.log(`Node ${this.name} message updated to ${innerMessage.toString2()}`);
-        logger.spacer();
+        let n = NodesMap.map.get(this.message.connector);
+        n && (this.connectorMessage = n.message);
+        log && logger.log(`Node ${this.name} message updated to ${innerMessage.toString2()}`);
+        log && logger.spacer();
 
     }
     private compareNumbers(num1: number, num2: number): number {
@@ -237,7 +248,7 @@ export class Message {
         let r = this.source.localeCompare(this.connector);
         return r === -1 ? this.source + this.connector : this.connector + this.source;
     }
-    
+
 }
 
 export class GArc {
@@ -252,7 +263,6 @@ export class GArc {
     public element: Element;
     public callBack: Function;
 
-    public logger: Logger;
     constructor(start, startEntryNumber, end, endEntryNumber) {
         this.name = start + end;
         this.start = start;
@@ -263,7 +273,6 @@ export class GArc {
         this.startInterface = undefined;
         this.endInterface = undefined;
         this.element = this.bootstrapArc(start + startEntryNumber, end + endEntryNumber);
-        this.logger = new Logger();
         this.callBack = undefined;
     };
 
@@ -285,7 +294,7 @@ export class GArc {
     };
 
     createInterface(name, isEnd = false) {
-        var _this = this;
+     
         var i = document.createElement("div");
         i.setAttribute('class', 'interface');
         i.setAttribute('style', `
@@ -299,23 +308,24 @@ export class GArc {
             var postEvent = (target as Element).classList.contains('error') ?
                 () => {
                     (target as Element).classList.remove('error');
-                    if (!_this.startInterface.classList.contains('error') && !_this.endInterface.classList.contains('error')) {
-                        _this.element.classList.remove('error');
-                        _this.isActive = true;
+                    if (!this.startInterface.classList.contains('error') && !this.endInterface.classList.contains('error')) {
+                        this.element.classList.remove('error');
+                        this.isActive = true;
                     }
                     logger.log((target as Element).id + " is enabled");
                 } :
                 () => {
                     (target as Element).classList.add('error');
-                    if (_this.startInterface.classList.contains('error') || _this.endInterface.classList.contains('error')) {
-                        _this.element.classList.add('error');
-                        _this.isActive = false;
+                    if (this.startInterface.classList.contains('error') || this.endInterface.classList.contains('error')) {
+                        this.element.classList.add('error');
+                        this.isActive = false;
                     }
                     logger.log((target as Element).id + " is disabled");
                 }
             postEvent();
-            _this.element.classList.remove('in-tree');
-            _this.callBack();
+            console.log(`${this.name}: isActive = ${this.isActive}`);
+            this.element.classList.remove('in-tree');
+            this.callBack();
         });
         return i;
     };
