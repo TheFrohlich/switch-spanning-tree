@@ -1,0 +1,107 @@
+@unit: 50px;
+    .tree-frame {
+        box-sizing: border-box;
+        height: 12 * @unit;
+        width: 10 * @unit;
+        position: relative;
+        float: left;
+        border: 2px solid;
+    }
+    
+    .box-shadow {
+        -webkit-box-shadow: 1px 1px 2px 2px rgba(9, 93, 219, 0.79);
+        -moz-box-shadow: 1px 1px 2px 2px rgba(9, 93, 219, 0.79);
+        box-shadow: 1px 1px 2px 2px rgba(9, 93, 219, 0.79);
+    }
+    
+    .setNode(@name, @top: 5px, @left: 5px, @bottom: 5px, @right: 5px) {
+        &.node-@{name}{
+        top: @top;
+        left: @left;
+        bottom: @bottom;
+        right: @right;
+    }
+}
+@node-dim: 50px;
+.node {
+    box-sizing: border-box;
+    border: 3px solid;
+    border-radius: 50%;
+    width: @node-dim;
+    height: @node-dim;
+    background-color: greenyellow;
+    position: absolute;
+    display: flex;
+    span {
+        height: auto;
+        width: auto;
+        margin: auto;
+    }
+    &:hover{
+        .box-shadow;
+    }
+    
+    .setNode(A, @unit, 4.5 * @unit);
+    .setNode(B, 6 * @unit, 1.5 * @unit);
+    .setNode(D, 10 * @unit, 7.5 * @unit );
+    .setNode(C, 10 * @unit, 1.5 *@unit);
+    .setNode(E, 6 * @unit, 7.5 * @unit);
+    .setNode(F, 4 * @unit, 4.5 * @unit);
+    .setNode(G, 8 * @unit, 4.5 * @unit);
+}
+.setArc(@name, @width, @angle, @top, @left) {
+    &.arc-@{name}{
+    width: @width * 1px;
+    top: @top;
+    left: @left;
+    transform: rotate(@angle * 1deg);
+}
+
+}
+.arc {
+    background-color: black;
+    height: 5px;
+    position: absolute;
+    cursor: pointer;
+    z-index: 1;
+    &:hover {
+        .box-shadow;
+    }
+    &.error {
+        background-color: red;
+    }
+    &.in-tree{
+        background-color: gold;
+    }
+    .setArc(AB, 245, 120, 198px, 1 * @unit);
+    .setArc(AE, 245, 60, 195px, 205px);
+    .setArc(AF, 102, 90, 148px, 4 * @unit);
+    .setArc(BC, 151, 90, 423px, 0.5 * @unit);
+    .setArc(BE, 256, 0, 324px, 122px);
+    .setArc(BF, 135, -40, 276px, 108px);
+    .setArc(CG, 135, -40, 474px, 108px);
+    .setArc(DG, 136, 215, 474px, 256px);
+    .setArc(EF, 136, -146, 276px, 256px);
+    .setArc(BG, 135, 38, 370px, 108px);
+    .setArc(EG, 135, 146, 370px, 256px);
+    .setArc(DE, 151, 270, 423px, 6.5 * @unit);
+    .setArc(CD, 256, 0, 525px, 122px);
+}
+.interface {
+    width: 20px;
+    height: 20px;
+    top: -55%;
+    border: 1px solid;
+    background-color: green;
+    z-index: 1;
+    position: absolute;
+    &.error {
+        background-color: red;
+    }
+    &.in-tree{
+        background-color: gold;
+    }
+        &:hover {
+        .box-shadow;
+    }
+}
