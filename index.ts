@@ -1,5 +1,5 @@
 
-import { GGraph, GNode, GArc,Logger } from './graph';
+import { GGraph, GNode, GArc,Logger ,MatrixGraph} from './graph';
 
 var nodes = [
     new GNode('A'),
@@ -192,11 +192,11 @@ var arcs = [
 
 // }
 
-var g = new GGraph(document.getElementById('tree-frame'), nodes, arcs);
+ var g = new GGraph(document.getElementById('tree-frame'), nodes, arcs);
 
 
 
 
 
 
-
+var m = new MatrixGraph();

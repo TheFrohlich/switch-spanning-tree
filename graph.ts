@@ -1,3 +1,5 @@
+
+
 export class Logger {
     private view: HTMLElement;
     private counter: number
@@ -6,15 +8,15 @@ export class Logger {
         this.counter = 1;
     }
     log(message) {
-        this.view.innerText += `\n${this.counter}. ${message}`;
-        this.counter++;
+        // this.view.innerText += `\n${this.counter}. ${message}`;
+        // this.counter++;
     }
     clear(): void {
-        this.view.innerText = '';
-        this.counter = 1;
+        // this.view.innerText = '';
+        // this.counter = 1;
     }
     spacer(): void {
-        this.view.innerText += '\n--------------------------------------------------------------------------------';
+        // this.view.innerText += '\n--------------------------------------------------------------------------------';
     }
 }
 
@@ -119,7 +121,7 @@ export class GGraph {
         for (var arc of this.arcsList) {
             arc.name.includes(nodeName) && nodeArcs.push(arc);
         }
-         
+
         return nodeArcs;
     };
 
@@ -177,7 +179,7 @@ export class GNode {
     }
     public handleIncomingsMessage(incomingMessage: Message): void {
         if (incomingMessage.source == this.name) { throw Error('message sand to self !!'); }
-        let log =true;
+        let log = true;
 
         let innerMessage = this.message;
         log && logger.log(`innerMessage ${innerMessage.toString2()}`);
@@ -294,7 +296,7 @@ export class GArc {
     };
 
     createInterface(name, isEnd = false) {
-     
+
         var i = document.createElement("div");
         i.setAttribute('class', 'interface');
         i.setAttribute('style', `
@@ -338,5 +340,130 @@ export class GArc {
     }
 
 }
+
+//// number of nonidentical spanning trees 
+export class MatrixGraph {
+    public degreeMatrix: Array<Array<number>>;
+    public adjacencyMatrix: Array<Array<number>>;
+    public laplasyan: Array<Array<number>>;
+
+
+    constructor() {
+        this.initDegrees();
+        this.printMatrix(this.degreeMatrix);
+        this.initAdjacency();
+        this.printMatrix(this.adjacencyMatrix);
+        this.calcLaplasyan();
+        this.printMatrix(this.laplasyan);
+        let removed = this.laplasyanRemove(2);
+        this.printMatrix(removed);
+
+        let res = this.determinant(this.laplasyan);
+
+        console.log(res);
+        res = this.determinant([
+            [-1,-1,0],
+            [0,2,-1],
+            [-1,-1,2]
+        ]);
+        console.log(res);
+
+    }
+
+    public laplasyanRemove(number): Array<Array<number>> {
+        let res = [
+            [0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0]
+        ];
+        
+        this.laplasyan.shift();
+        this.laplasyan.forEach((d)=> d.shift());
+        return this.laplasyan;
+    }
+    public calcLaplasyan(): void {
+        this.laplasyan = [
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0]
+        ]
+        let l = this.degreeMatrix.length;
+        for (var i = 0; i < l; i++) {
+            for (var j = 0; j < l; j++) {
+                this.laplasyan[i][j] = this.degreeMatrix[i][j] - this.adjacencyMatrix[i][j];
+            }
+            // console.log(this.laplasyan[i].toString());
+        }
+    }
+    public initAdjacency(): void {
+        this.adjacencyMatrix = [
+                /*A B C D E F G */
+            /*A*/[0, 1, 0, 0, 1, 1, 0],
+            /*B*/[1, 0, 1, 0, 1, 1, 1],
+            /*C*/[0, 1, 0, 1, 0, 0, 1],
+            /*D*/[0, 0, 1, 0, 1, 0, 1],
+            /*E*/[1, 1, 0, 1, 0, 1, 1],
+            /*F*/[1, 1, 0, 1, 1, 0, 0],
+            /*G*/[0, 1, 1, 1, 1, 0, 0],
+        ];
+    }
+    public initDegrees(): void {
+        let degreesArray = [3, 5, 3, 3, 5, 3, 4];//d(A)....d(G)
+        this.degreeMatrix = new Array<Array<number>>();
+        for (let i = 0; i < 7; ++i) {
+            this.degreeMatrix.push(new Array<number>(7).fill(0));
+            this.degreeMatrix[i][i] = degreesArray[i];
+        }
+    }
+
+    public printMatrix(m: Array<Array<number>>): void {
+        let rs: string = '';
+        for (var i = 0; i < m.length; ++i) {
+            rs += '|[';
+            rs += m[i].toString();
+            rs += ']|\n';
+        }
+        console.log(rs);
+    }
+    public determinant(m) {
+        var numRow = m.length;
+        var numCol = m[0].length;
+        var det = 0;
+        var row, col;
+        var diagLeft, diagRight;
+
+        if (numRow === 1) {
+            return m[0][0];
+        } else if (numRow === 2) {
+            return m[0][0] * m[1][1] - m[0][1] * m[1][0];
+        }
+
+        for (col = 0; col < numCol; col++) {
+            diagLeft = m[0][col];
+            diagRight = m[0][col];
+
+            for (row = 1; row < numRow; row++) {
+                diagRight *= m[row][(((col + row) % numCol) + numCol) % numCol];
+                diagLeft *= m[row][(((col - row) % numCol) + numCol) % numCol];
+            }
+
+            det += diagRight - diagLeft;
+        }
+
+        return det;
+    };
+
+}
+
+
+
+
 
 
